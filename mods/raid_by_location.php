@@ -40,43 +40,49 @@ if(!empty(GOOGLE_API_KEY)){
 $gym_name = '#' . $update['message']['chat']['id'];
 $gym_letter = substr($gym_name, 0, 1);
 
-$rs = my_query(
-    "
+if (isset($james_override)) {
+    $rs = my_query(
+        "
     INSERT INTO   gyms
     SET           lat = '{$lat}',
                   lon = '{$lon}',
 		  address = '{$db->real_escape_string($address)}',
                   gym_name = '{$db->real_escape_string($gym_name)}'
     "
-);
+    );
 
 // Get last insert id from db.
-$gym_id = my_insert_id();
+    $gym_id = my_insert_id();
 
 // Write to log.
-debug_log('Gym ID: ' . $gym_id);
-debug_log('Gym Name: ' . $gym_name);
+    debug_log('Gym ID: ' . $gym_id);
+    debug_log('Gym Name: ' . $gym_name);
 
 // Create the keys.
-$keys = [
-    [
+    $keys = [
         [
-            'text'          => getTranslation('next'),
-            'callback_data' => $gym_letter . ':edit_raidlevel:' . $gym_id
-        ]
-    ],
-    [
+            [
+                'text' => getTranslation('next'),
+                'callback_data' => $gym_letter . ':edit_raidlevel:' . $gym_id
+            ]
+        ],
         [
-            'text'          => getTranslation('abort'),
-            'callback_data' => $gym_id . ':exit:2'
+            [
+                'text' => getTranslation('abort'),
+                'callback_data' => $gym_id . ':exit:2'
+            ]
         ]
-    ]
-];
+    ];
+} else {
+    // new fancy location stuff:
+    $keys = raid_get_gyms_nearby($lat, $lon);
 
+}
 // Answer location message.
 if(isset($update['message']['location'])) {
     // Build message.
-    $msg = getTranslation('create_raid') . ': <i>' . $address . '</i>';
+    //$msg = getTranslation('create_raid') . ': <i>' . $address . '</i>';
+    $msg = getTranslation('nearby_gyms') . ': <i>' . $address . '</i>';
 
     // Send message.
     send_message($update['message']['chat']['id'], $msg, $keys, ['reply_markup' => ['selective' => true, 'one_time_keyboard' => true]]);

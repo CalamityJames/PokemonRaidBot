@@ -350,6 +350,9 @@
     "RU":"Создать рейд в",
     "NO":"Opprett raid i"
   },
+  "nearby_gyms": {
+    "EN":"Gyms near to "
+  },
   "select_raid_level_to_continue":{  
     "NL":"Om echt door te gaan, selecteer een raid level",
     "DE":"Um wirklich fortzufahren, bitte Raid Level auswählen",

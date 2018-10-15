@@ -1025,6 +1025,43 @@ function raid_edit_raidlevel_keys($gym_id, $gym_first_letter)
     return $keys;
 }
 
+function raid_get_gyms_nearby($lat, $lon) {
+    // get gyms visible within your current in game location (700m according to TSR)
+    $rs = my_query(
+        "SELECT id, gym_name,
+        ( 6371 * ACOS( COS( RADIANS({$lat}) ) * COS( RADIANS( lat ) ) * COS( RADIANS( lon ) - RADIANS({$lon}) ) + SIN( RADIANS({$lat}) ) * SIN(RADIANS(lat)) ) )*1000 AS distance
+        FROM      gyms
+        WHERE     show_gym = 1
+        HAVING distance < 700
+        ORDER BY distance"
+    );
+
+    // Init empty keys array.
+    $keys = [];
+
+    while ($gym = $rs->fetch_assoc()) {
+        // Add first letter to keys array
+        $keys[] = array(
+            'text'          => $gym['gym_name'] . " (" . round($gym['distance'],0) . "m)",
+            'callback_data' => $gym['gym_name'][0] . ':edit_raidlevel:' . $gym['id']
+
+        );
+    }
+
+    // Get the inline key array.
+    $keys = inline_key_array($keys, 1);
+
+    // Add back navigation key.
+    $nav_keys = [];
+    $nav_keys[] = universal_inner_key($keys, '0', 'exit', '0', getTranslation('abort'));
+
+    // Get the inline key array.
+    $keys[] = $nav_keys;
+
+    return $keys;
+
+}
+
 /**
  * Raid gym first letter selection
  * @return array
